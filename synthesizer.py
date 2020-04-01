@@ -83,15 +83,13 @@ def lib_cons(vPR: List[Tuple], lib: List[Component]):
 '''
     Encoding Specification Constraint
 '''
-def spec_cons(vInput: List, vOutput):
-    a, = vInput
-    y = vOutput
-    return y == a & -a
+def spec_cons(vInput: List, vOutput, spec):
+    return spec(vOutput, *vInput)
 
 '''
 6   Synthesis Constraint Solving
 '''
-def synthesis(nInput, lib, spec):
+def synthesize(nInput, lib, spec):
 
     def make_loc_vars(prefix):
         lInput = list(z3.Ints(_id_arr(f'{prefix}_locInput', nInput)))
@@ -123,12 +121,13 @@ def synthesis(nInput, lib, spec):
     cevInput, cevPR, cevOutput = make_value_vars('ctr')
     verifier.add(conn_cons(lInput, lPR, lOutput, cevInput, cevPR, cevOutput))
     verifier.add(lib_cons(cevPR, lib))
-    verifier.add(z3.Not(spec_cons(cevInput, cevOutput)))
+    verifier.add(z3.Not(spec_cons(cevInput, cevOutput, spec)))
     
     '''
     ExAllSolver
     '''
     for iteration in range(100):
+        print(f'> Running iteration #{iteration} ...')
         '''
         Step 1. Finite Synthesis
         >   In this step, we synthesize a design that works for finitely many
@@ -139,6 +138,8 @@ def synthesis(nInput, lib, spec):
         if check_result == z3.sat:
             syn_model = synthesizer.model()
             program = Program(nInput, syn_model, lPR, lOutput, lib)
+            print(f'Finite synthesis success!')
+            print(program)
         elif check_result == z3.unsat:
             '''
             >   If no such values are found, we terminate and declare that no
@@ -176,13 +177,15 @@ def synthesis(nInput, lib, spec):
 
         check_result = verifier.check()
         if check_result == z3.unsat:
+            print('Verification passed!')
             return program
         elif check_result == z3.sat:
+            print('Verification failed!')
             ver_model = verifier.model()
             cvInput, cvPR, cvOutput = make_value_vars(f'c{iteration}')
             synthesizer.add(lib_cons(cvPR, lib))
             synthesizer.add(conn_cons(lInput, lPR, lOutput, cvInput, cvPR, cvOutput))
-            synthesizer.add(spec_cons(cvInput, cvOutput))
+            synthesizer.add(spec_cons(cvInput, cvOutput, spec))
             for cevI, cvI in zip(cevInput, cvInput) :
                 synthesizer.add(cvI == ver_model.eval(cevI, True))
         else:
@@ -192,5 +195,3 @@ def synthesis(nInput, lib, spec):
 
     print('timeout')
     return None
-
-print(synthesis(1, std_lib, None))
