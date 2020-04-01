@@ -4,6 +4,10 @@ This is a Python implementation of *Brahma*, using [Z3](https://github.com/Z3Pro
 
 Brahma (Synthesis of Loop-free Programs, PLDI'11, Sumit Gulwani et al) is a simple loop-free program synthesizer. It can be used to synthesize several straight-line programs. The most famous applications are discovering bit-manipulation tricks, as described in *Hacker's Delight*, commonly referred to as the Bible of bit twiddling hacks.
 
+Technically, Brahma follows the *counterexample-guided iterative refinement* paradigm. It solves queries like `exists x forall y, constraint(x, y)` by alternating these two steps:
+- **Finite synthesis**: In this step, we find a value `x0` for `x` such that `constraint(x0, y)` holds for all `y` in `S` (`S` is the counterexample set, initially empty). If no such value exists, the synthesis fails.
+- **Verification**: In this step, we try to find a value `y0` for `y` such that `constraint(x0, y0)` doesn't hold. Then add `y0` into the counterexample set `S`. If no such value exists, the synthesis succeeds, and `x0` is the result.
+
 ## Example
 
 To extract the rightmost 1 bit, the *Brahma* synthesizer may give the following program:
