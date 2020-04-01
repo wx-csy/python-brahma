@@ -111,19 +111,20 @@ class Not(Component):
     def expression(self, a) -> str:
         return f'~{a}'
 
-class One(Component):
-    def __init__(self):
-        Component.__init__(self, 'not')
+class Constant(Component):
+    def __init__(self, value):
+        Component.__init__(self, f'constant({value})')
+        self.value = value
     
     @property
     def arity(self) -> int:
         return 0
 
     def semantics(self):
-        return 1
+        return self.value
 
     def expression(self) -> str:
-        return f'1'
+        return f'{self.value}'
 
 '''
 7.3 Choice of Multi-set of Base Components
@@ -133,4 +134,4 @@ class One(Component):
 > bitwise-xor, shift-right, comparison, add, and subtract operations.
 '''
 
-std_lib = [Add(), Sub(), Neg(), And(), Or(), Not(), One()]
+std_lib = [Add(), Sub(), Neg(), And(), Or(), Not(), Constant(1)]

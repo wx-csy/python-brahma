@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import inspect
+
 from synthesizer import synthesize
 from component import std_lib
 
