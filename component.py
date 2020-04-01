@@ -111,6 +111,20 @@ class Not(Component):
     def expression(self, a) -> str:
         return f'~{a}'
 
+class Xor(Component):
+    def __init__(self):
+        Component.__init__(self, 'xor')
+    
+    @property
+    def arity(self) -> int:
+        return 2
+
+    def semantics(self, a, b):
+        return a ^ b
+
+    def expression(self, a, b) -> str:
+        return f'{a} ^ {b}'
+
 class Constant(Component):
     def __init__(self, value):
         Component.__init__(self, f'constant({value})')
@@ -134,4 +148,4 @@ class Constant(Component):
 > bitwise-xor, shift-right, comparison, add, and subtract operations.
 '''
 
-std_lib = [Add(), Sub(), Neg(), And(), Or(), Not(), Constant(1)]
+std_lib = [Add(), Sub(), Neg(), And(), Or(), Not(), Xor(), Constant(1)]

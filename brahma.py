@@ -2,7 +2,7 @@
 
 import inspect
 
-from synthesizer import synthesize
+from synthesis import synthesize
 from component import std_lib
 
 def main():
