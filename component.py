@@ -24,7 +24,8 @@ class component(ABC):
     def expression(self, *args):
         raise NotImplementedError
 
-class add(component):
+
+class Add(component):
     def __init__(self):
         component.__init__(self, 'add')
     
@@ -38,7 +39,8 @@ class add(component):
     def expression(self, a, b):
         return f'{a} + {b}'
 
-class sub(component):
+
+class Sub(component):
     def __init__(self):
         component.__init__(self, 'sub')
     
@@ -52,19 +54,36 @@ class sub(component):
     def expression(self, a, b):
         return f'{a} - {b}'
 
-class identity(component):
+
+class And(component):
     def __init__(self):
-        component.__init__(self, '')
+        component.__init__(self, 'and')
     
     @property
     def arity(self) -> int:
-        return 1
+        return 2
 
-    def semantics(self, a):
-        return a
+    def semantics(self, a, b):
+        return a & b
 
-    def expression(self, a) :
-        return f'{a}'
+    def expression(self, a, b):
+        return f'{a} & {b}'
+
+
+class Or(component):
+    def __init__(self):
+        component.__init__(self, 'and')
+    
+    @property
+    def arity(self) -> int:
+        return 2
+
+    def semantics(self, a, b):
+        return a | b
+
+    def expression(self, a, b):
+        return f'{a} | {b}'
+
 
 '''
 7.3 Choice of Multi-set of Base Components
@@ -74,4 +93,4 @@ class identity(component):
 > bitwise-xor, shift-right, comparison, add, and subtract operations.
 '''
 
-std_lib = [sub(), add(), identity()]
+std_lib = [Add(), Sub(), And(), Or()]

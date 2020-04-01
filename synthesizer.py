@@ -4,13 +4,13 @@ from component import component, std_lib
 from utility import format_program
 import z3
 
-def id_arr(prefix, num):
+def _id_arr(prefix, num):
     return [f'{prefix}_{i}' for i in range(num)]
 
 '''
 5.1 Encoding Well-formed Programs
 '''
-def wfp_cons(lInput: List, lPR: List[Tuple]):
+def wfp_cons(lInput: List, lPR: List[Tuple], lOutput):
     cons = []
 
     # Appropriate Values
@@ -20,6 +20,7 @@ def wfp_cons(lInput: List, lPR: List[Tuple]):
         for lParam in lParams:
             cons.append(z3.And(0 <= lParam, lParam < nInput + nLib))
         cons.append(z3.And(nInput <= lRet, lRet < nInput + nLib))
+    cons.append(z3.And(0 <= lOutput, lOutput < nInput + nLib))
 
     # Consistency Constraint
     lRets = tuple(zip(*lPR))[1]
@@ -41,15 +42,15 @@ def wfp_cons(lInput: List, lPR: List[Tuple]):
 '''
 5.2 Encoding Dataflow in Programs
 '''
-def conn_cons(lInput: List, lPR: List[Tuple], vInput: List, vPR: List[Tuple]):
+def conn_cons(lInput: List, lPR: List[Tuple], lOutput, vInput: List, vPR: List[Tuple], vOutput):
     cons = []
 
-    lList = lInput[:]
+    lList = lInput + [lOutput]
     for lParams, lRet in lPR:
         lList += lParams
         lList.append(lRet)
     
-    vList = vInput[:]
+    vList = vInput + [vOutput]
     for vParams, vRet in vPR:
         vList += vParams
         vList.append(vRet)
@@ -75,9 +76,9 @@ def lib_cons(vPR: List[Tuple], lib: List[component]):
 '''
     Encoding Specification Constraint
 '''
-def spec_cons(vInput: List, vPR: List[Tuple]):
+def spec_cons(vInput: List, vOutput):
     a, b = vInput
-    y = vPR[-1][-1]
+    y = vOutput
     return a + b == y
 
 '''
@@ -86,34 +87,36 @@ def spec_cons(vInput: List, vPR: List[Tuple]):
 def synthesis(nInput, lib, spec):
 
     def make_loc_vars(prefix):
-        lInput = list(z3.Ints(id_arr(f'{prefix}_locInput', nInput)))
+        lInput = list(z3.Ints(_id_arr(f'{prefix}_locInput', nInput)))
         lPR = [
             (   
-                list(z3.Ints(id_arr(f'{prefix}_locParam_{i}', comp.arity))), 
+                list(z3.Ints(_id_arr(f'{prefix}_locParam_{i}', comp.arity))), 
                 z3.Int(f'{prefix}_locReturn_{i}')
             ) for i, comp in enumerate(lib)
         ]
-        return lInput, lPR
+        lOutput = z3.Int(f'{prefix}_locOutput')
+        return lInput, lPR, lOutput
 
     def make_value_vars(prefix):
-        vInput = list(z3.BitVecs(id_arr(f'{prefix}_valInput', nInput), 32))
+        vInput = list(z3.BitVecs(_id_arr(f'{prefix}_valInput', nInput), 32))
         vPR = [
             (
-                list(z3.BitVecs(id_arr(f'{prefix}_valParam_{i}', comp.arity), 32)), 
+                list(z3.BitVecs(_id_arr(f'{prefix}_valParam_{i}', comp.arity), 32)), 
                 z3.BitVec(f'{prefix}_valReturn_{i}', 32)
             ) for i, comp in enumerate(lib)
         ]
-        return vInput, vPR
+        vOutput = z3.BitVec(f'{prefix}_valOutput', 32)
+        return vInput, vPR, vOutput
 
     synthesizer = z3.Solver()
     verifier = z3.Solver()
 
-    lInput, lPR = make_loc_vars('cur')
-    synthesizer.add(wfp_cons(lInput, lPR))
-    cevInput, cevPR = make_value_vars('ctr')
-    verifier.add(conn_cons(lInput, lPR, cevInput, cevPR))
+    lInput, lPR, lOutput = make_loc_vars('cur')
+    synthesizer.add(wfp_cons(lInput, lPR, lOutput))
+    cevInput, cevPR, cevOutput = make_value_vars('ctr')
+    verifier.add(conn_cons(lInput, lPR, lOutput, cevInput, cevPR, cevOutput))
     verifier.add(lib_cons(cevPR, lib))
-    verifier.add(z3.Not(spec_cons(cevInput, cevPR)))
+    verifier.add(z3.Not(spec_cons(cevInput, cevOutput)))
     
     '''
     ExAllSolver
@@ -128,7 +131,7 @@ def synthesis(nInput, lib, spec):
         check_result = synthesizer.check()
         if check_result == z3.sat:
             syn_model = synthesizer.model()
-            print(format_program(nInput, syn_model, lPR, lib))
+            print(format_program(nInput, syn_model, lPR, lOutput, lib))
         elif check_result == z3.unsat:
             '''
             >   If no such values are found, we terminate and declare that no
@@ -162,23 +165,25 @@ def synthesis(nInput, lib, spec):
             for lParam in lParams:
                 verifier.add(lParam == syn_model.eval(lParam, True))
             verifier.add(lRet == syn_model.eval(lRet, True))
+        verifier.add(lOutput == syn_model.eval(lOutput, True))
 
         check_result = verifier.check()
         if check_result == z3.unsat:
             return syn_model
         elif check_result == z3.sat:
             ver_model = verifier.model()
-            cvInput, cvPR = make_value_vars(f'c{iteration}')
+            cvInput, cvPR, cvOutput = make_value_vars(f'c{iteration}')
             synthesizer.add(lib_cons(cvPR, lib))
-            synthesizer.add(conn_cons(lInput, lPR, cvInput, cvPR))
-            synthesizer.add(spec_cons(cvInput, cvPR))
+            synthesizer.add(conn_cons(lInput, lPR, lOutput, cvInput, cvPR, cvOutput))
+            synthesizer.add(spec_cons(cvInput, cvOutput))
             for cevI, cvI in zip(cevInput, cvInput) :
                 synthesizer.add(cvI == ver_model.eval(cevI, True))
         else:
             return None
 
         verifier.pop()
-        
+
+    print('timeout')
     return None
 
 synthesis(2, std_lib, None)
