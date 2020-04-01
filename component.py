@@ -1,15 +1,13 @@
 from abc import ABC, abstractmethod
 from typing import List
-
 import z3
 
 '''
 The abstract base class for base component specification.
 '''
-class component(ABC):
-    def __init__(self, name: str, ctx: z3.Context = None) -> None:
+class Component(ABC):
+    def __init__(self, name: str) -> None:
         self.name = name
-        self.context = ctx
 
     @property
     @abstractmethod
@@ -21,13 +19,13 @@ class component(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def expression(self, *args):
+    def expression(self, *args) -> str:
         raise NotImplementedError
 
 
-class Add(component):
+class Add(Component):
     def __init__(self):
-        component.__init__(self, 'add')
+        Component.__init__(self, 'add')
     
     @property
     def arity(self) -> int:
@@ -36,13 +34,13 @@ class Add(component):
     def semantics(self, a, b):
         return a + b
 
-    def expression(self, a, b):
+    def expression(self, a, b) -> str:
         return f'{a} + {b}'
 
 
-class Sub(component):
+class Sub(Component):
     def __init__(self):
-        component.__init__(self, 'sub')
+        Component.__init__(self, 'sub')
     
     @property
     def arity(self) -> int:
@@ -51,13 +49,13 @@ class Sub(component):
     def semantics(self, a, b):
         return a - b
 
-    def expression(self, a, b):
+    def expression(self, a, b) -> str:
         return f'{a} - {b}'
 
 
-class Neg(component):
+class Neg(Component):
     def __init__(self):
-        component.__init__(self, 'neg')
+        Component.__init__(self, 'neg')
     
     @property
     def arity(self) -> int:
@@ -66,13 +64,13 @@ class Neg(component):
     def semantics(self, a):
         return -a 
 
-    def expression(self, a):
+    def expression(self, a) -> str:
         return f'-{a}'
 
 
-class And(component):
+class And(Component):
     def __init__(self):
-        component.__init__(self, 'and')
+        Component.__init__(self, 'and')
     
     @property
     def arity(self) -> int:
@@ -81,13 +79,13 @@ class And(component):
     def semantics(self, a, b):
         return a & b
 
-    def expression(self, a, b):
+    def expression(self, a, b) -> str:
         return f'{a} & {b}'
 
 
-class Or(component):
+class Or(Component):
     def __init__(self):
-        component.__init__(self, 'and')
+        Component.__init__(self, 'and')
     
     @property
     def arity(self) -> int:
@@ -96,8 +94,22 @@ class Or(component):
     def semantics(self, a, b):
         return a | b
 
-    def expression(self, a, b):
+    def expression(self, a, b) -> str:
         return f'{a} | {b}'
+
+class Not(Component):
+    def __init__(self):
+        Component.__init__(self, 'not')
+    
+    @property
+    def arity(self) -> int:
+        return 1
+
+    def semantics(self, a):
+        return ~a
+
+    def expression(self, a) -> str:
+        return f'~{a}'
 
 
 '''
@@ -108,4 +120,4 @@ class Or(component):
 > bitwise-xor, shift-right, comparison, add, and subtract operations.
 '''
 
-std_lib = [Add(), Sub(), Neg(), And(), Or()]
+std_lib = [Add(), Sub(), Neg(), And(), Or(), Not()]

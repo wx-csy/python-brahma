@@ -1,8 +1,9 @@
 from sys import stderr
 from typing import List, Tuple
-from component import component, std_lib
-from utility import format_program
 import z3
+
+from component import Component, std_lib
+from program import Program
 
 def _id_arr(prefix, num):
     return [f'{prefix}_{i}' for i in range(num)]
@@ -43,7 +44,6 @@ def wfp_cons(lInput: List, lPR: List[Tuple], lOutput):
         for lParam in lParams:
             cons.append(lParam < lRet)
     
-
     return z3.And(*cons)
 
 '''
@@ -74,7 +74,7 @@ def conn_cons(lInput: List, lPR: List[Tuple], lOutput, vInput: List, vPR: List[T
 '''
     Encoding Library Constraint
 '''
-def lib_cons(vPR: List[Tuple], lib: List[component]):
+def lib_cons(vPR: List[Tuple], lib: List[Component]):
     cons = []
     for (vParam, vRet), comp in zip(vPR, lib):
         cons.append(vRet == comp.semantics(*vParam))
@@ -138,7 +138,7 @@ def synthesis(nInput, lib, spec):
         check_result = synthesizer.check()
         if check_result == z3.sat:
             syn_model = synthesizer.model()
-            print(format_program(nInput, syn_model, lPR, lOutput, lib))
+            program = Program(nInput, syn_model, lPR, lOutput, lib)
         elif check_result == z3.unsat:
             '''
             >   If no such values are found, we terminate and declare that no
@@ -176,7 +176,7 @@ def synthesis(nInput, lib, spec):
 
         check_result = verifier.check()
         if check_result == z3.unsat:
-            return syn_model
+            return program
         elif check_result == z3.sat:
             ver_model = verifier.model()
             cvInput, cvPR, cvOutput = make_value_vars(f'c{iteration}')
@@ -193,4 +193,4 @@ def synthesis(nInput, lib, spec):
     print('timeout')
     return None
 
-synthesis(1, std_lib, None)
+print(synthesis(1, std_lib, None))
