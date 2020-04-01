@@ -6,7 +6,7 @@ Brahma (Synthesis of Loop-free Programs, PLDI'11, Sumit Gulwani et al) is a simp
 
 ## Example
 
-To turn-off the rightmost 1 bit, the *Brahma* synthesizer may give the following program:
+To extract the rightmost 1 bit, the *Brahma* synthesizer may give the following program:
 ``` python
 def f(x0):
     v1 = -x0
