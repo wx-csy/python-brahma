@@ -21,21 +21,28 @@ def wfp_cons(lInput: List, lPR: List[Tuple], lOutput):
             cons.append(z3.And(0 <= lParam, lParam < nInput + nLib))
         cons.append(z3.And(nInput <= lRet, lRet < nInput + nLib))
     cons.append(z3.And(0 <= lOutput, lOutput < nInput + nLib))
+    # Assign Fixed Value for lInput
+    for i, lInp in enumerate(lInput) :
+        cons.append(lInp == i)
 
-    # Consistency Constraint
+    '''
+    -   Consistency Constraint
+    >   Every line in the program has at most one component.
+    '''
     lRets = tuple(zip(*lPR))[1]
     for i in range(len(lRets)):
         for j in range(i):
             cons.append(lRets[i] != lRets[j])
 
-    # Acyclicity Constraint
+    '''
+    -   Acyclicity Constraint
+    >   In a well-formed program, every variable is initialized *before* it is
+    > used.
+    '''
     for lParams, lRet in lPR:
         for lParam in lParams:
             cons.append(lParam < lRet)
     
-    # Assign Fixed Value for lInput
-    for i, lInp in enumerate(lInput) :
-        cons.append(lInp == i)
 
     return z3.And(*cons)
 
@@ -77,9 +84,9 @@ def lib_cons(vPR: List[Tuple], lib: List[component]):
     Encoding Specification Constraint
 '''
 def spec_cons(vInput: List, vOutput):
-    a, b = vInput
+    a, = vInput
     y = vOutput
-    return a + b == y
+    return y == a & -a
 
 '''
 6   Synthesis Constraint Solving
@@ -186,4 +193,4 @@ def synthesis(nInput, lib, spec):
     print('timeout')
     return None
 
-synthesis(2, std_lib, None)
+synthesis(1, std_lib, None)

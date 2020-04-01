@@ -55,6 +55,21 @@ class Sub(component):
         return f'{a} - {b}'
 
 
+class Neg(component):
+    def __init__(self):
+        component.__init__(self, 'neg')
+    
+    @property
+    def arity(self) -> int:
+        return 1
+
+    def semantics(self, a):
+        return -a 
+
+    def expression(self, a):
+        return f'-{a}'
+
+
 class And(component):
     def __init__(self):
         component.__init__(self, 'and')
@@ -93,4 +108,4 @@ class Or(component):
 > bitwise-xor, shift-right, comparison, add, and subtract operations.
 '''
 
-std_lib = [Add(), Sub(), And(), Or()]
+std_lib = [Add(), Sub(), Neg(), And(), Or()]
