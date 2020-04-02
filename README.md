@@ -20,7 +20,7 @@ def f(x0):
 
 ## Usage
 
-Type `python3 brahma.py` in terminal to enter interactive mode:
+Type `python3 brahma` in terminal to enter interactive mode:
 
 ```
 Welcome to python-brahma. Type in a python function to specify the constraint.

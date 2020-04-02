@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List
+from inspect import getargspec
+
 import z3
 
 '''
@@ -8,11 +10,7 @@ The abstract base class for base component specification.
 class Component(ABC):
     def __init__(self, name: str) -> None:
         self.name = name
-
-    @property
-    @abstractmethod
-    def arity(self) -> int: 
-        raise NotImplementedError
+        self.arity = len(getargspec(self.semantics)[0]) - 1
     
     @abstractmethod
     def semantics(self, *args):
@@ -25,11 +23,7 @@ class Component(ABC):
 
 class Add(Component):
     def __init__(self):
-        Component.__init__(self, 'add')
-    
-    @property
-    def arity(self) -> int:
-        return 2
+        super().__init__('add')
 
     def semantics(self, a, b):
         return a + b
@@ -40,11 +34,7 @@ class Add(Component):
 
 class Sub(Component):
     def __init__(self):
-        Component.__init__(self, 'sub')
-    
-    @property
-    def arity(self) -> int:
-        return 2
+        super().__init__('sub')
 
     def semantics(self, a, b):
         return a - b
@@ -55,11 +45,7 @@ class Sub(Component):
 
 class Neg(Component):
     def __init__(self):
-        Component.__init__(self, 'neg')
-    
-    @property
-    def arity(self) -> int:
-        return 1
+        super().__init__('neg')
 
     def semantics(self, a):
         return -a 
@@ -70,11 +56,7 @@ class Neg(Component):
 
 class And(Component):
     def __init__(self):
-        Component.__init__(self, 'and')
-    
-    @property
-    def arity(self) -> int:
-        return 2
+        super().__init__('and')
 
     def semantics(self, a, b):
         return a & b
@@ -85,11 +67,7 @@ class And(Component):
 
 class Or(Component):
     def __init__(self):
-        Component.__init__(self, 'or')
-    
-    @property
-    def arity(self) -> int:
-        return 2
+        super().__init__('or')
 
     def semantics(self, a, b):
         return a | b
@@ -99,11 +77,7 @@ class Or(Component):
 
 class Not(Component):
     def __init__(self):
-        Component.__init__(self, 'not')
-    
-    @property
-    def arity(self) -> int:
-        return 1
+        super().__init__('not')
 
     def semantics(self, a):
         return ~a
@@ -113,11 +87,7 @@ class Not(Component):
 
 class Xor(Component):
     def __init__(self):
-        Component.__init__(self, 'xor')
-    
-    @property
-    def arity(self) -> int:
-        return 2
+        super().__init__('xor')
 
     def semantics(self, a, b):
         return a ^ b
@@ -127,12 +97,8 @@ class Xor(Component):
 
 class Constant(Component):
     def __init__(self, value):
-        Component.__init__(self, f'constant({value})')
+        super().__init__(f'constant({value})')
         self.value = value
-    
-    @property
-    def arity(self) -> int:
-        return 0
 
     def semantics(self):
         return self.value

@@ -1,7 +1,7 @@
 from typing import List
 import z3
 
-from component import Component
+from .component import Component
 
 class Instruction:
     def __init__(self, component: Component, args: List) -> None:
