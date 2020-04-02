@@ -1,9 +1,9 @@
-from sys import stderr
 from typing import List, Tuple
 import z3
 
 from .component import Component, std_lib
 from .program import Program
+
 
 '''
 5.1 Encoding Well-formed Programs
@@ -86,10 +86,9 @@ class Synthesizer:
     '''
     6   Synthesis Constraint Solving
     '''
-    def synthesize(self, max_iter=100):
+    def synthesize(self, max_len=None, max_iter=100) :
         lib = self.lib
         nInput = self.nInput
-
         ctx = z3.Context()
 
         def id_arr(prefix, num):
@@ -122,6 +121,8 @@ class Synthesizer:
 
         lInput, lPR, lOutput = make_loc_vars('cur')
         synthesizer.add(wfp_cons(lInput, lPR, lOutput))
+        if max_len is not None: 
+            synthesizer.add(lOutput < (max_len + nInput))
         cevInput, cevPR, cevOutput = make_value_vars('ctr')
         verifier.add(conn_cons(lInput, lPR, lOutput, cevInput, cevPR, cevOutput))
         verifier.add(lib_cons(cevPR, lib))
@@ -131,7 +132,7 @@ class Synthesizer:
         ExAllSolver
         '''
         for iteration in range(max_iter):
-            print(f'> Running iteration #{iteration} ...')
+            print(f'> Running iteration {iteration} ...')
             '''
             Step 1. Finite Synthesis
             >   In this step, we synthesize a design that works for finitely many
@@ -142,17 +143,13 @@ class Synthesizer:
             if check_result == z3.sat:
                 syn_model = synthesizer.model()
                 program = Program(nInput, syn_model, lPR, lOutput, lib)
-                print(f'Finite synthesis success!')
-                print(program)
             elif check_result == z3.unsat:
                 '''
                 >   If no such values are found, we terminate and declare that no
                 > design could be found.
                 '''
-                print('not found')
                 return None 
             else:
-                print("don't know")
                 return None
 
             '''
@@ -181,10 +178,8 @@ class Synthesizer:
 
             check_result = verifier.check()
             if check_result == z3.unsat:
-                print('Verification passed!')
                 return program
             elif check_result == z3.sat:
-                print('Verification failed!')
                 ver_model = verifier.model()
                 cvInput, cvPR, cvOutput = make_value_vars(f'c{iteration}')
                 synthesizer.add(lib_cons(cvPR, lib))
@@ -197,5 +192,15 @@ class Synthesizer:
 
             verifier.pop()
 
-        print('timeout')
         return None
+
+    def synthesize_shortest(self) :
+        program = None
+        len = None
+        while True:
+            newprog = self.synthesize(max_len=len)
+            if newprog is None: break
+            program = newprog
+            len = program.sloc - 1
+            print(f'Current length = {program.sloc}')
+        return program

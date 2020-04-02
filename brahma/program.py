@@ -19,6 +19,7 @@ class Program:
     def __init__(self, nInput, model, lPR, lOutput, lib) -> None:
         self.nInput = nInput
         self.lOutput = model[lOutput].as_long()
+        self.sloc = 0
 
         instrs = [None] * len(lib)
         for (lParams, lRet), comp in zip(lPR, lib):
@@ -46,9 +47,11 @@ class Program:
             for sid in instr.args: 
                 visiting(sid)
             instr.reached = True
+            self.sloc += 1
         
         visiting(self.lOutput)
-        
+
+
     def __repr__(self) -> str:
         prog = [f"def f({', '.join(map(self.__id2name, range(self.nInput)))}):"]
         for ident, instr in enumerate(self.instructions):
