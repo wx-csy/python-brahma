@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import inspect
+from z3 import And, Or, Implies
 
 from synthesis import synthesize
 from component import std_lib

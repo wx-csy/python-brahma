@@ -10,11 +10,11 @@ class Instruction:
         self.args = args
 
 class Program:
-    def __id2name(self, id: int) -> str:
-        if id < self.nInput: 
-            return f'x{id}'
+    def __id2name(self, ident: int) -> str:
+        if ident < self.nInput: 
+            return f'x{ident}'
         else :
-            return f'v{id - self.nInput}'
+            return f'v{ident - self.nInput}'
 
     def __init__(self, nInput, model, lPR, lOutput, lib) -> None:
         self.nInput = nInput
@@ -39,9 +39,9 @@ class Program:
         > uses all components by adding dead code. Dead code can be easily
         > identified and removed in a post-processing step.
         '''
-        def visiting(id):
-            if id < nInput: return
-            instr = instrs[id - nInput]
+        def visiting(ident: int) -> None:
+            if ident < nInput: return
+            instr = instrs[ident - nInput]
             if instr.reached: return
             for sid in instr.args: 
                 visiting(sid)
@@ -51,9 +51,9 @@ class Program:
         
     def __repr__(self) -> str:
         prog = [f"def f({', '.join(map(self.__id2name, range(self.nInput)))}):"]
-        for id, instr in enumerate(self.instructions):
+        for ident, instr in enumerate(self.instructions):
             if instr.reached :
-                prog.append(f'    v{id} = ' + instr.component.expression(*map(self.__id2name, instr.args)))
+                prog.append(f'    v{ident} = ' + instr.component.expression(*map(self.__id2name, instr.args)))
         prog.append(f'    return {self.__id2name(self.lOutput)}')
-        return '\n'.join(prog) + '\n'
+        return '\n'.join(prog)
 

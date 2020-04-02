@@ -85,7 +85,7 @@ class And(Component):
 
 class Or(Component):
     def __init__(self):
-        Component.__init__(self, 'and')
+        Component.__init__(self, 'or')
     
     @property
     def arity(self) -> int:

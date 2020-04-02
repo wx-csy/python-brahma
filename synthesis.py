@@ -90,31 +90,32 @@ def spec_cons(vInput: List, vOutput, spec):
 6   Synthesis Constraint Solving
 '''
 def synthesize(nInput, lib, spec):
+    ctx = z3.Context()
 
     def make_loc_vars(prefix):
-        lInput = list(z3.Ints(_id_arr(f'{prefix}_locInput', nInput)))
+        lInput = list(z3.Ints(_id_arr(f'{prefix}_locInput', nInput), ctx))
         lPR = [
             (   
-                list(z3.Ints(_id_arr(f'{prefix}_locParam_{i}', comp.arity))), 
-                z3.Int(f'{prefix}_locReturn_{i}')
+                list(z3.Ints(_id_arr(f'{prefix}_locParam_{i}', comp.arity), ctx)), 
+                z3.Int(f'{prefix}_locReturn_{i}', ctx)
             ) for i, comp in enumerate(lib)
         ]
-        lOutput = z3.Int(f'{prefix}_locOutput')
+        lOutput = z3.Int(f'{prefix}_locOutput', ctx)
         return lInput, lPR, lOutput
 
     def make_value_vars(prefix):
-        vInput = list(z3.BitVecs(_id_arr(f'{prefix}_valInput', nInput), 32))
+        vInput = list(z3.BitVecs(_id_arr(f'{prefix}_valInput', nInput), 32, ctx))
         vPR = [
             (
-                list(z3.BitVecs(_id_arr(f'{prefix}_valParam_{i}', comp.arity), 32)), 
-                z3.BitVec(f'{prefix}_valReturn_{i}', 32)
+                list(z3.BitVecs(_id_arr(f'{prefix}_valParam_{i}', comp.arity), 32, ctx)), 
+                z3.BitVec(f'{prefix}_valReturn_{i}', 32, ctx)
             ) for i, comp in enumerate(lib)
         ]
-        vOutput = z3.BitVec(f'{prefix}_valOutput', 32)
+        vOutput = z3.BitVec(f'{prefix}_valOutput', 32, ctx)
         return vInput, vPR, vOutput
 
-    synthesizer = z3.Solver()
-    verifier = z3.Solver()
+    synthesizer = z3.Solver(ctx=ctx)
+    verifier = z3.Solver(ctx=ctx)
 
     lInput, lPR, lOutput = make_loc_vars('cur')
     synthesizer.add(wfp_cons(lInput, lPR, lOutput))
@@ -154,8 +155,8 @@ def synthesize(nInput, lib, spec):
         '''
         Step 2. Verification
         >   In this step, we verify if the synthesized design - that we know
-        > works for the inputs in S - also workds for all inputs. Specifically, 
-        > if the generated value currL for L work for all inputs, then we
+        > works for the inputs in S - also works for all inputs. Specifically, 
+        > if the generated value currL for L works for all inputs, then we
         > terminate with success. If not, then we find an input on which it does
         > not work and add it to S.
         '''
