@@ -148,4 +148,5 @@ class Constant(Component):
 > bitwise-xor, shift-right, comparison, add, and subtract operations.
 '''
 
-std_lib = [Add(), Sub(), Neg(), And(), Or(), Not(), Xor(), Constant(1)]
+std_lib = [Add(), Sub(), Neg(), And(), Or(), Not(), Xor(), Constant(0), Constant(1)]
+

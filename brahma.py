@@ -1,6 +1,8 @@
 #!/usr/bin/env python3
 
 import inspect
+
+import z3patch
 from z3 import And, Or, Implies
 
 from synthesis import synthesize
