@@ -80,16 +80,17 @@ def lib_cons(vPR: List[Tuple], lib: List[Component]):
 class Synthesizer:
     def __init__(self, nInput, spec, lib=std_lib):
         self.nInput = nInput
-        self.lib = lib
+        self.ctx = z3.Context()
+        self.lib = lib(self.ctx)
         self.spec = lambda vInput, vOutput: spec(vOutput, *vInput)
 
     '''
     6   Synthesis Constraint Solving
     '''
-    def synthesize(self, max_len=None, max_iter=100) :
+    def synthesize(self, max_len=None, max_iter=100, timeout=30000) :
         lib = self.lib
         nInput = self.nInput
-        ctx = z3.Context()
+        ctx = self.ctx
 
         def id_arr(prefix, num):
             return [f'{prefix}_{i}' for i in range(num)]
@@ -116,14 +117,18 @@ class Synthesizer:
             vOutput = z3.BitVec(f'{prefix}_valOutput', 32, ctx)
             return vInput, vPR, vOutput
 
-        synthesizer = z3.Solver(ctx=ctx)
-        verifier = z3.Solver(ctx=ctx)
 
         lInput, lPR, lOutput = make_loc_vars('cur')
+        cevInput, cevPR, cevOutput = make_value_vars('ctr')
+
+        synthesizer = z3.Solver(ctx=ctx)
+        synthesizer.set(timeout=timeout)
         synthesizer.add(wfp_cons(lInput, lPR, lOutput))
         if max_len is not None: 
             synthesizer.add(lOutput < (max_len + nInput))
-        cevInput, cevPR, cevOutput = make_value_vars('ctr')
+
+        verifier = z3.Solver(ctx=ctx)
+        verifier.set(timeout=timeout)
         verifier.add(conn_cons(lInput, lPR, lOutput, cevInput, cevPR, cevOutput))
         verifier.add(lib_cons(cevPR, lib))
         verifier.add(z3.Not(self.spec(cevInput, cevOutput)))
@@ -176,6 +181,10 @@ class Synthesizer:
                 verifier.add(lRet == syn_model.eval(lRet, True))
             verifier.add(lOutput == syn_model.eval(lOutput, True))
 
+            for comp in lib:
+                for param in comp.parameters() :
+                    verifier.add(param == syn_model.eval(param, True))
+
             check_result = verifier.check()
             if check_result == z3.unsat:
                 return program
@@ -196,11 +205,11 @@ class Synthesizer:
 
     def synthesize_shortest(self) :
         program = None
-        len = None
+        length = None
         while True:
-            newprog = self.synthesize(max_len=len)
+            newprog = self.synthesize(max_len=length)
             if newprog is None: break
             program = newprog
-            len = program.sloc - 1
+            length = program.sloc - 1
             print(f'Current length = {program.sloc}')
         return program

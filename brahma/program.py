@@ -17,6 +17,7 @@ class Program:
             return f'v{ident - self.nInput}'
 
     def __init__(self, nInput, model, lPR, lOutput, lib) -> None:
+        self.model = model
         self.nInput = nInput
         self.lOutput = model[lOutput].as_long()
         self.sloc = 0
@@ -53,10 +54,11 @@ class Program:
 
 
     def __repr__(self) -> str:
+        model = self.model
         prog = [f"def f({', '.join(map(self.__id2name, range(self.nInput)))}):"]
         for ident, instr in enumerate(self.instructions):
             if instr.reached :
-                prog.append(f'    v{ident} = ' + instr.component.expression(*map(self.__id2name, instr.args)))
+                prog.append(f'    v{ident} = ' + instr.component.expression(*map(self.__id2name, instr.args), model))
         prog.append(f'    return {self.__id2name(self.lOutput)}')
         return '\n'.join(prog)
 

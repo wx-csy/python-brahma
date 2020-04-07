@@ -1,0 +1,8 @@
+language: c++
+dist: bionic 
+sudo: false
+before_install:
+    - sudo apt update
+    - sudo apt install libz3-dev
+script: 
+    - python3 test.py
