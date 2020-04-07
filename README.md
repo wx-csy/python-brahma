@@ -1,5 +1,7 @@
 # python-brahma
 
+[![Build Status](https://travis-ci.org/wx-csy/python-brahma.svg?branch=master)](https://travis-ci.org/wx-csy/python-brahma)
+
 This is a Python implementation of *Brahma*, using [Z3](https://github.com/Z3Prover/z3) as the Satisfiability Modulo Theory (SMT) solver.
 
 Brahma (Synthesis of Loop-free Programs, PLDI'11, Sumit Gulwani et al) is a simple loop-free program synthesizer. It can be used to synthesize several straight-line programs. The most famous applications are discovering bit-manipulation tricks, as described in *Hacker's Delight*, commonly referred to as the Bible of bit twiddling hacks.
@@ -40,8 +42,7 @@ expression denoting the constraint on the input and output.
   You can install it with the following script:
 
   ```
-  # works on ubuntu
-  sudo apt install libz3-dev
+  pip3 install z3-solver
   ```
   
   

@@ -1,8 +1,9 @@
-language: c++
+language: python
+python:
+  - "3.6"
 dist: bionic 
 sudo: false
 before_install:
-    - sudo apt update
-    - sudo apt install libz3-dev
+  - pip3 install z3-solver
 script: 
-    - python3 test.py
+  - python3 test.py
