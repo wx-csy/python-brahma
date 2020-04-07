@@ -17,7 +17,14 @@ test_cases = [
     lambda y, a: y == (~a) & (a + 1),
     lambda y, a: y == (~a) & (a - 1),
     lambda y, a: y == If(a >= 0, a, -a),
+    lambda y, a: If(a > 0, y == 1, If(a < 0, y == -1, y == 0)),
 ]
+
+'''
+int sign(int x) {
+    return -x >> 31 | -(x >> 31);
+}
+'''
 
 for i, cons in enumerate(test_cases):
     print(f'Synthesizing #{i+1} ...')

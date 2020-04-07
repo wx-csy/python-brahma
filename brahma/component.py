@@ -132,6 +132,17 @@ class SignBit(Component):
         return a >> 31
 
     def expression(self, a, model) -> str:
+        return f'{a} >>> 31'
+
+
+class NegSignBit(Component):
+    def __init__(self, ctx):
+        super().__init__('negsignbit', ctx)
+
+    def semantics(self, a):
+        return -(a >> 31)
+
+    def expression(self, a, model) -> str:
         return f'{a} >> 31'
 
 
@@ -180,6 +191,6 @@ def std_lib(ctx) :
         Not(ctx),
         Xor(ctx),
         SignBit(ctx),
-        Constant(1, ctx),
+        NegSignBit(ctx),
         VaradicConstant(ctx),
     ]

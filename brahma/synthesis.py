@@ -87,7 +87,7 @@ class Synthesizer:
     '''
     6   Synthesis Constraint Solving
     '''
-    def synthesize(self, max_len=None, max_iter=100, timeout=30000) :
+    def synthesize(self, max_len=None, max_iter=100, timeout=60000) :
         lib = self.lib
         nInput = self.nInput
         ctx = self.ctx
