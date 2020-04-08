@@ -2,7 +2,7 @@
 from brahma import Synthesizer
 
 if __name__ == '__main__':
-    from z3 import And, Or, Implies, If
+    from z3 import And, Or, Implies, If, UGE, UGT, ULE, ULT
     import inspect
     print('Welcome to python-brahma. Type in a python function to specify the constraint.')
     print('E.g., `lambda y, a, b: y == a + b`')

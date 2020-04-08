@@ -146,6 +146,39 @@ class NegSignBit(Component):
         return f'{a} >> 31'
 
 
+class Ule(Component):
+    def __init__(self, ctx):
+        super().__init__('ule', ctx)
+
+    def semantics(self, a, b):
+        return z3.If(z3.ULE(a, b), z3.BitVecVal(-1, 32, self.ctx), z3.BitVecVal(0, 32, self.ctx))
+
+    def expression(self, a, b, model) -> str:
+        return f'-((unsigned){a} <= (unsigned){b})'
+
+
+class Ugt(Component):
+    def __init__(self, ctx):
+        super().__init__('ugt', ctx)
+
+    def semantics(self, a, b):
+        return z3.If(z3.UGT(a, b), z3.BitVecVal(-1, 32, self.ctx), z3.BitVecVal(0, 32, self.ctx))
+
+    def expression(self, a, b, model) -> str:
+        return f'-((unsigned){a} > (unsigned){b})'
+
+
+class IfThenElse(Component):
+    def __init__(self, ctx):
+        super().__init__('if-then-else', ctx)
+
+    def semantics(self, a, b, c):
+        return z3.If(a != 0, b, c)
+
+    def expression(self, a, b, c, model) -> str:
+        return f'{a} ? {b} : {c}'
+
+
 class Constant(Component):
     def __init__(self, value, ctx):
         super().__init__(f'const({value})', ctx)
@@ -183,7 +216,6 @@ def std_lib(ctx) :
     return [
         Add(ctx),
         Sub(ctx),
-        Neg(ctx),
         Inc(ctx),
         Dec(ctx),
         And(ctx),
@@ -192,5 +224,8 @@ def std_lib(ctx) :
         Xor(ctx),
         SignBit(ctx),
         NegSignBit(ctx),
-        VaradicConstant(ctx),
+        Ugt(ctx),
+        Ule(ctx),
+        # IfThenElse(ctx),
+        # VaradicConstant(ctx),
     ]

@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import time
 import inspect
 
@@ -17,7 +19,12 @@ test_cases = [
     lambda y, a: y == (~a) & (a + 1),
     lambda y, a: y == (~a) & (a - 1),
     lambda y, a: y == If(a >= 0, a, -a),
+    lambda y, a, b: z3.If(z3.ULE(a & b, a ^ b), y != 0, y == 0),
+
+    lambda y, a, b: z3.If(z3.UGT(x & ~y, y), y != 0, y == 0),
+    lambda y, a, b: z3.If(z3.ULE(x & ~y, y), y != 0, y == 0),
     lambda y, a: If(a > 0, y == 1, If(a < 0, y == -1, y == 0)),
+    lambda y, a, b: z3.And(z3.Or(y == a, y == b), z3.UGE(y, a), z3.UGE(y, b))
 ]
 
 '''
@@ -34,14 +41,11 @@ for i, cons in enumerate(test_cases):
     program = None
     length = None
     while True:
-        try :
-            t0 = time.clock()
-            newprog = synth.synthesize(max_len=length)
-            if newprog is None: break
-            program = newprog
-            length = program.sloc - 1
-            print(f'Current length = {program.sloc}')
-            print(program)
-            print('%.2f seconds used.' % (time.clock() - t0))
-        except TimeoutException as ex:
-            print('Execution timeout.')
+        t0 = time.clock()
+        newprog = synth.synthesize(max_len=length)
+        if newprog is None: break
+        program = newprog
+        length = program.sloc - 1
+        print(f'Current length = {program.sloc}')
+        print(program)
+        print('%.2f seconds used.' % (time.clock() - t0))
