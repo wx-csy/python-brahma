@@ -21,8 +21,8 @@ test_cases = [
     lambda y, a: y == If(a >= 0, a, -a),
     lambda y, a, b: z3.If(z3.ULE(a & b, a ^ b), y != 0, y == 0),
 
-    lambda y, a, b: z3.If(z3.UGT(x & ~y, y), y != 0, y == 0),
-    lambda y, a, b: z3.If(z3.ULE(x & ~y, y), y != 0, y == 0),
+    lambda y, a, b: z3.If(z3.UGT(a & ~b, b), y != 0, y == 0),
+    lambda y, a, b: z3.If(z3.ULE(a & ~b, b), y != 0, y == 0),
     lambda y, a: If(a > 0, y == 1, If(a < 0, y == -1, y == 0)),
     lambda y, a, b: z3.And(z3.Or(y == a, y == b), z3.UGE(y, a), z3.UGE(y, b))
 ]
